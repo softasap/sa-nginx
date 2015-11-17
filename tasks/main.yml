@@ -1,0 +1,2 @@
+---
+  - include: {{root_dir}}/tasks_nginx.yml
