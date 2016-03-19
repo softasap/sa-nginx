@@ -1,2 +1,2 @@
 ---
-  - include: "{{root_dir}}/tasks_nginx.yml"
+  - include: "tasks_nginx.yml"
