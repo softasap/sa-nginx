@@ -1,5 +1,6 @@
-sa-nginx
-========
+# sa-nginx
+Basic role for nginx based deployments (like MEAN stack)
 
-Installs basic nginx, adjusts folder structure for sites-available / sites-enabled approach
+Adjusts folder structure to be apache style (i.e. sites-available, sites-enabled)
 
+Adjusts hashbucketsize for longer domains.
