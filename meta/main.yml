@@ -24,11 +24,10 @@ galaxy_info:
     - name: Ubuntu
       versions:
         - trusty
+        - xenial 
   galaxy_tags:
     - nginx
     - ubuntu
-  dependencies:
-  - role: Voronenko.developer_recipe
   #platforms:
   #- name: EL
   #  versions:
