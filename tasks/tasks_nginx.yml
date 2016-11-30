@@ -62,13 +62,13 @@
 
   - name: Nginx | Restart
     service: name=nginx state=restarted enabled=yes
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present|failed and docker_test is not defined
     tags: nginx
     become: yes
 
 
   - name: Nginx | Reload
     service: name=nginx state=reloaded enabled=yes
-    when: ansible_os_family == "Debian" and nginx_present|failed
+    when: ansible_os_family == "Debian" and nginx_present|failed and docker_test is not defined
     tags: nginx
     become: yes
