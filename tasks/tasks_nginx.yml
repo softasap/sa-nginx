@@ -60,8 +60,15 @@
     become: yes
     tags: proxy
 
+  - name: Nginx | Restart
+    service: name=nginx state=restarted enabled=yes
+    when: ansible_os_family == "Debian" and nginx_present|failed
+    tags: nginx
+    become: yes
+
+
   - name: Nginx | Reload
-    service: name=nginx state=reloaded
+    service: name=nginx state=reloaded enabled=yes
     when: ansible_os_family == "Debian" and nginx_present|failed
     tags: nginx
     become: yes

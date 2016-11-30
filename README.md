@@ -21,3 +21,13 @@ Example of usage:
 
 
 </pre>
+
+
+Copyright and license
+---------------------
+
+Copyright - Prudentia toolkit(https://github.com/StarterSquad/prudentia) with subsequent modification/adaptation by myself.
+
+Code licensed under the [BSD 3 clause] (https://opensource.org/licenses/BSD-3-Clause) or the [MIT License] (http://opensource.org/licenses/MIT).
+
+Subscribe for roles updates at [FB] (https://www.facebook.com/SoftAsap/)
