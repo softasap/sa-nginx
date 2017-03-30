@@ -76,8 +76,8 @@
     tags: 
       - nginx
 
-  - name: Nginx | Reload
-    service: name=nginx state=reloaded enabled="yes"
+  - name: Nginx | Restart
+    service: name=nginx state=restarted enabled="yes"
     when: ansible_os_family == "Debian" and docker_test is not defined  and nginx_present|failed
     become: yes
     tags: 
