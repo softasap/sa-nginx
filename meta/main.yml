@@ -25,9 +25,18 @@ galaxy_info:
       versions:
         - trusty
         - xenial 
+    - name: Fedora
+      versions:
+        - 25
+    - name: EL
+      versions:
+        - 7
+
   galaxy_tags:
     - nginx
     - ubuntu
+    - fedora
+    - centos
   #platforms:
   #- name: EL
   #  versions:
