@@ -13,10 +13,11 @@
   - block:
 
     - name: Nginx | Add GPG key to apt keyring
-      shell: wget -q -O - http://nginx.org/keys/nginx_signing.key | sudo apt-key add -
-      when: ansible_os_family == "Debian" and nginx_present|failed
-      tags: nginx
+      apt_key: url=http://nginx.org/keys/nginx_signing.key state=present
+      when: nginx_present|failed
       become: yes
+      tags:
+        - nginx
 
     - name: Nginx | Add Debian apt repository
       apt_repository: repo="deb http://nginx.org/packages/debian/ {{ansible_distribution_release}} nginx"
