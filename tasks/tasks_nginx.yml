@@ -42,20 +42,22 @@
 
     - name: Nginx | Add  RPM official nginx key
       rpm_key: key=http://nginx.org/keys/nginx_signing.key
+      when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
       tags: nginx
       become: yes
 
     - name: Nginx | add YUM official nginx repository
       template: src="{{role_dir}}/templates/nginx/nginx.repo.j2" dest=/etc/yum.repos.d/nginx.repo
+      when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
       tags: nginx
       become: yes
 
-    - name: Nginx | Install (yum)
-      yum: state=present pkg=nginx
+    - name: Nginx | Install (OS specific yum/dng)
+      package: state=present name=nginx
       tags: nginx
       become: yes
 
-    when: ansible_os_family == 'RedHat'
+    when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS' or ansible_distribution == 'Fedora'
 
 
   - name: Nginx | Create sites available/enabled directories
@@ -84,6 +86,6 @@
 
   - name: Nginx | Reload
     service: name=nginx state=reloaded enabled=yes
-    when: nginx_present|failed
+    when: nginx_present|failed and docker_test is not defined
     tags: nginx
     become: yes
