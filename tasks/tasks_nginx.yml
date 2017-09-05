@@ -86,14 +86,15 @@
     tags: 
       - nginx
 
-
   - name: Nginx | Disable default site
     file: path=/etc/nginx/default.conf state=absent
-    when:  nginx_present|failed
+    with_items:
+      - /etc/nginx/default.conf
+      - /etc/nginx/conf.d/default.conf
+    when:  nginx_present|failed                                                                                                                                                                             
     become: yes
-    tags: 
+    tags:
       - nginx
-
 
   - name: Nginx | Uncomment server_names_hash_bucket_size
     lineinfile: dest=/etc/nginx/nginx.conf regexp="^(\s*)#\s*server_names_hash_bucket_size" line="\1server_names_hash_bucket_size 64;" backrefs=yes
