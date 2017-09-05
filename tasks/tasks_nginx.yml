@@ -5,7 +5,6 @@
 ---
   - name: Nginx | Check if is present
     command: test -x /usr/sbin/nginx
-    when: ansible_os_family == "Debian"
     ignore_errors: yes
     register: nginx_present
     tags: nginx
