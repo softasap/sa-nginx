@@ -23,6 +23,11 @@ env:
     run_opts: "--privileged"
     playbook: test.yml
   - distribution: alpine
+    init: /usr/sbin/init
+    version: 3.4
+    playbook: test.yml
+  - distribution: alpine
+    init: /usr/sbin/init
     version: 3.5
     playbook: test.yml
 
