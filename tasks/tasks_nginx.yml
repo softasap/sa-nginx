@@ -12,7 +12,7 @@
   - block:
 
     - name: Nginx | Install (apk)
-      apk: update-cache=yes state=present name=nginx
+      apk: update_cache=yes state=present name=nginx
       when: nginx_present|failed
       tags: nginx
       become: yes
