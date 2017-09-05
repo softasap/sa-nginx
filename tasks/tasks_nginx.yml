@@ -5,10 +5,20 @@
 ---
   - name: Nginx | Check if is present
     command: test -x /usr/sbin/nginx
-    when: ansible_os_family == "Debian"
     ignore_errors: yes
     register: nginx_present
     tags: nginx
+
+  - block:
+
+    - name: Nginx | Install (apk)
+      apk: update_cache=yes state=present name=nginx
+      when: nginx_present|failed
+      tags: nginx
+      become: yes
+
+    when: ansible_os_family == "Alpine"
+
 
   - block:
 
