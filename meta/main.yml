@@ -33,8 +33,7 @@ galaxy_info:
         - 7
     - name: Alpine
       versions:
-        - 3.5
-        - 3.4
+        - any
 
   galaxy_tags:
     - nginx
