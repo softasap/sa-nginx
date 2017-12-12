@@ -116,6 +116,29 @@
     tags:
      - nginx
 
+  - name: Nginx | Create snippets directory
+    file: path={{item}} state=directory mode=0755
+    with_items:
+      - /etc/nginx/snippets
+    become: yes
+    tags:
+      - nginx
+
+  - name: Nginx | Put default snippets there
+    copy:
+      src: "{{role_dir}}/files/snippets/{{item}}"
+      dest: "/etc/nginx/snippets/{{item}}"
+      owner: root
+      group: root
+      mode: u=rw,g=r,o=r
+    with_items:
+      - fastcgi.conf
+      - fastcgi_params
+      - uwsgi_params 
+    become: yes
+    tags:
+      - nginx
+
   - name: Nginx | Reload configuration
     service: name=nginx state=restarted enabled=yes
     when: nginx_present|failed and docker_test is not defined
