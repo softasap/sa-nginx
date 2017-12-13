@@ -28,6 +28,10 @@ Advanced
 
 ```YAML
 
+
+nginx_add_to_groups:
+  - www-data
+
 nginx_conf_properties:
   - {
       regexp: "^daemon *",
@@ -45,13 +49,11 @@ nginx_conf_properties:
       insertbefore: "BOF"
     }
 
-
-
-
-     - {
-         role: "sa-nginx",
-         nginx_conf_properties: "{{nginx_conf_properties}}"
-       }
+  - {
+      role: "sa-nginx",
+      nginx_conf_properties: "{{nginx_conf_properties}}",
+      nginx_groups: "{{nginx_add_to_groups}}"
+    }
 
 
 ```

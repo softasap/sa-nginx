@@ -1,5 +1,6 @@
 #
 # Credits: https://raw.githubusercontent.com/StarterSquad/prudentia/develop/prudentia/tasks/nginx.yml
+# based on, but refactored and improved.
 #
 
 ---
@@ -135,6 +136,13 @@
       - fastcgi.conf
       - fastcgi_params
       - uwsgi_params 
+    become: yes
+    tags:
+      - nginx
+
+  - name: Nginx | Add nginx user to additional groups, if needed
+    user: name='nginx' groups="{{item}}" append=yes
+    with_items: "{{nginx_groups}}"
     become: yes
     tags:
       - nginx
