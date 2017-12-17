@@ -13,6 +13,8 @@ Adjusts hashbucketsize for longer domains.
 
 Example of usage:
 
+Simple
+
 ```YAML
 
      - {
@@ -21,6 +23,41 @@ Example of usage:
 
 
 ```
+
+Advanced
+
+```YAML
+
+
+nginx_add_to_groups:
+  - www-data
+
+nginx_conf_properties:
+  - {
+      regexp: "^daemon *",
+      line: "daemon off;",
+      insertbefore: "BOF"
+    }
+  - {
+      regexp: "^worker_processes *",
+      line: "worker_processes auto;",
+      insertbefore: "BOF"
+    }
+  - {
+      regexp: "^pid *",
+      line: "pid {{nginx_pid_dir}}/nginx.pid;",
+      insertbefore: "BOF"
+    }
+
+  - {
+      role: "sa-nginx",
+      nginx_conf_properties: "{{nginx_conf_properties}}",
+      nginx_groups: "{{nginx_add_to_groups}}"
+    }
+
+
+```
+
 
 
 Usage with ansible galaxy workflow
