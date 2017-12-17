@@ -81,6 +81,12 @@ Please adjust the path accordingly.
 
 ```
 
+requirements.yml snippet:
+
+```YAML
+- src: softasap.sa-nginx
+  name: sa-nginx
+```
 
 
 
