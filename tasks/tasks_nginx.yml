@@ -18,10 +18,23 @@
       tags: nginx
       become: yes
 
+    - name: Nginx | Install (apk)
+      apk: state=present name=acl
+      when: nginx_present|failed
+      tags: nginx
+      become: yes
+
+
     when: ansible_os_family == "Alpine"
 
 
   - block:
+
+    - name:  Nginx |  Get acl dependency (ansible unprivileged user operations magic)
+      package: name="acl" state="present"
+      become: yes
+      tags:
+        - nginx
 
     - name: Nginx | Add GPG key to apt keyring
       apt_key: url=http://nginx.org/keys/nginx_signing.key state=present
@@ -50,6 +63,12 @@
     when: ansible_os_family == "Debian"
 
   - block:
+
+    - name:  Nginx |  Get acl dependency (ansible unprivileged user operations magic)
+      package: name="acl" state="present"
+      become: yes
+      tags:
+        - nginx
 
     - name: Nginx | Add  RPM official nginx key
       rpm_key: key=http://nginx.org/keys/nginx_signing.key
