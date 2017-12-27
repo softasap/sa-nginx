@@ -77,14 +77,14 @@
       - /etc/nginx/sites-available
       - /etc/nginx/sites-enabled
     become: yes
-    tags: 
+    tags:
       - nginx
 
 
   - name: Nginx | Configure include sites-enabled
     lineinfile: dest=/etc/nginx/nginx.conf regexp=".*sites-enabled.*" line="    include /etc/nginx/sites-enabled/*;" insertbefore="}" state=present
     become: yes
-    tags: 
+    tags:
       - nginx
 
   - name: Nginx | Disable default site
@@ -135,7 +135,7 @@
     with_items:
       - fastcgi.conf
       - fastcgi_params
-      - uwsgi_params 
+      - uwsgi_params
     become: yes
     tags:
       - nginx
@@ -147,10 +147,20 @@
     tags:
       - nginx
 
+  - name: Nginx | custom log files workaround - allow nginx user to write files into /var/log/nginx but not read
+    acl:
+      path: /var/log/nginx
+      entity: nginx
+      etype: user
+      permissions: wx
+      state: present
+    become: yes
+    tags:
+      - nginx
+
   - name: Nginx | Reload configuration
     service: name=nginx state=restarted enabled=yes
     when: nginx_present|failed and docker_test is not defined
     become: yes
-    tags: 
+    tags:
       - nginx
-
