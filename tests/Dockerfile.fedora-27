@@ -23,7 +23,7 @@ STOPSIGNAL SIGRTMIN+3
 # Install Ansible
 RUN dnf -y update
 RUN dnf install -y python2 python-pip python2-dnf libselinux-python sudo
-RUN pip install -U ansible==2.5.2
+RUN pip install -U ansible==2.5.2 ansible-lint
 RUN mkdir -p /etc/ansible
 
 # Install Ansible inventory file
