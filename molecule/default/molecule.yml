@@ -8,7 +8,7 @@ driver:
     name: virtualbox
   # Run vagrant up with --provision.
   # Defaults to --no-provision)
-  provision: no
+  provision: false
   # vagrant-cachier configuration
   # Defaults to 'machine'
   # Any value different from 'machine' or 'box' will disable it
