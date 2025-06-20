@@ -15,7 +15,7 @@
       ansible.builtin.include_vars: "vars/playbook_vars.yml"
 
   roles:
-      - role: "sa-nginx"
+    - role: "sa-nginx"
 
 
 #- name: Apply box play
