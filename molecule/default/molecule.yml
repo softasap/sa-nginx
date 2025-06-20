@@ -32,7 +32,7 @@ platforms:
     provider_raw_config_args:
       - "customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"
   - name: debian
-    box:  debian/bullseye64
+    box: debian/bullseye64
     memory: 4096
     cpus: 2
     interfaces:
@@ -45,7 +45,7 @@ platforms:
     provider_raw_config_args:
       - "customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"
   - name: alpine
-    box:  generic/alpine318
+    box: generic/alpine318
     memory: 4096
     cpus: 2
     interfaces:
