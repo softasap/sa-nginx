@@ -5,11 +5,8 @@
 
 ---
   - name: Nginx | Check if is present
-    ansible.builtin.stat:
-      path: /usr/sbin/nginx
-      get_attributes: no
-      get_checksum: no
-      get_mime: no
+    ansible.builtin.command: test -x /usr/sbin/nginx
+    ignore_errors: yes
     register: nginx_present
     changed_when: false
     tags: nginx
@@ -45,10 +42,28 @@
     when: ansible_os_family == "Debian"
     block:
 
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+      become: true
+      tags: nginx
+
     - name:  Nginx |  Get acl dependency (ansible unprivileged user operations magic)
       ansible.builtin.package:
-        name: "acl"
+        name: "{{ ['acl','libacl1','libacl1-dev'] if ansible_distribution == 'Debian' else 'acl' }}"
         state: "present"
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags:
+        - nginx
+
+    - name: Nginx | Install GPG (required for apt key management)
+      ansible.builtin.package:
+        name: gnupg
+        state: present
       retries: 3
       register: result
       until: result is not failed

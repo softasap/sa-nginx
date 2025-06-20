@@ -18,8 +18,21 @@ driver:
   parallel: false
   default_box: 'ubuntu/jammy64'
 platforms:
-  - name: ubuntu2204
-    box: ubuntu/jammy64
+  # - name: ubuntu2204
+  #   box: ubuntu/jammy64
+  #   memory: 4096
+  #   cpus: 2
+  #   interfaces:
+  #     - network_name: private_network
+  #       type: dhcp
+  #       auto_config: true
+  #   instance_raw_config_args:
+  #     - "vbguest.auto_update = false"   # yamllint disable-line
+  #     - "disksize.size = '50GB'"
+  #   provider_raw_config_args:
+  #     - "customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"
+  - name: debian
+    box:  debian/bullseye64
     memory: 4096
     cpus: 2
     interfaces:
@@ -31,6 +44,7 @@ platforms:
       - "disksize.size = '50GB'"
     provider_raw_config_args:
       - "customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"
+
 provisioner:
   name: ansible
   log: true
