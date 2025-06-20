@@ -1,27 +1,30 @@
 ---
-- hosts: www
-  gather_facts: False
+- name: Configure www hosts
+  hosts: www
+  gather_facts: false
 
   pre_tasks:
-    - ansible.builtin.debug: msg="Pre tasks section"
+    - name: Display pre-task message
+      ansible.builtin.debug:
+        msg: "Pre tasks section"
 
     - name: ANSIBLE PYTHON | install python 2
-      raw: test -e /usr/bin/python || (apt -qqy update && apt install -qy python-minimal)
+      ansible.builtin.raw: test -e /usr/bin/python || (apt -qqy update && apt install -qy python-minimal)
+      become: true
+      changed_when: false
+
+    - name: UNPRIVILEGED USERS | Get acl dependency
+      ansible.builtin.apt:
+        pkg: "acl"
       become: true
 
-    - name:  UNPRIVILEGED USERS | Get acl dependency (ansible unprivileged user operations magic)
-      ansible.builtin.apt: pkg="acl"
-      become: true
-
-    - name: gather facts
-      setup:
-
+    - name: Gather facts
+      ansible.builtin.setup:
 
   roles:
-     - {
-        role: "sa-nginx"
-       }
+    - role: "sa-nginx"
 
   tasks:
-
-    - ansible.builtin.debug: msg="Tasks section"
+    - name: Display tasks message
+      ansible.builtin.debug:
+        msg: "Tasks section"

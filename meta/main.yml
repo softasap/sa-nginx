@@ -1,9 +1,9 @@
 ---
 galaxy_info:
   role_name: sa_nginx
-  alternate_role_name:
-    - sa-nginx
-  standalone: true
+#  alternate_role_name:
+#    - sa-nginx
+#  standalone: true
   namespace: softasap
   author: vyacheslav voronenko
   description: Basic role for nginx based deployments

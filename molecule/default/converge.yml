@@ -3,19 +3,20 @@
   hosts: all
 
   pre_tasks:
-    - ansible.builtin.debug: msg="Pre tasks section for {{ ansible_host }}"
+    - name: Display pre-task message
+      ansible.builtin.debug:
+        msg: "Pre tasks section for {{ ansible_host }}"
 
-    - name: set default facts
+    - name: Set default facts
       ansible.builtin.set_fact:
         remote_ip_address: "{{ ansible_host }}"
 
     - name: Include default vars
-      ansible.builtin.include_vars: "playbook_vars.yml"
+      ansible.builtin.include_vars: "vars/playbook_vars.yml"
 
   roles:
-     - {
-        role: "sa-nginx"
-       }
+      - role: "sa-nginx"
+
 
 #- name: Apply box play
 #  import_playbook: ../../playbook.yml
