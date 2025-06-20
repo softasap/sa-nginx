@@ -1,1 +1,7 @@
----
+# Example requirements for Molecule tests
+# collections:
+#   - name: community.general
+#     version: 10.5.0
+# roles:
+#   - src: https://github.com/example/role
+#     version: main
