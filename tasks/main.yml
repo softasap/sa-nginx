@@ -1,2 +1,3 @@
 ---
-  - include: "tasks_nginx.yml"
+  - name: Include nginx tasks from tasks_nginx.yml
+    ansible.builtin.include_tasks: "tasks_nginx.yml"
