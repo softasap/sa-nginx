@@ -51,7 +51,7 @@
 
     - name:  Nginx |  Get acl dependency (ansible unprivileged user operations magic)
       ansible.builtin.package:
-        name: "{{ ['acl','libacl1','libacl1-dev'] if ansible_distribution == 'Debian' else 'acl' }}"
+        name: "{{ ['acl', 'libacl1', 'libacl1-dev'] if ansible_distribution == 'Debian' else 'acl' }}"
         state: "present"
       retries: 3
       register: result
