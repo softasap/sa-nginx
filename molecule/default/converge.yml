@@ -17,7 +17,5 @@
   roles:
     - role: "sa-nginx"
 
-
-#- name: Apply box play
-#  import_playbook: ../../playbook.yml
-
+  # - name: Apply box play
+  #   import_playbook: ../../playbook.yml
