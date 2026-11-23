@@ -1,0 +1,47 @@
+---
+- name: Verify nginx installation (docker)
+  hosts: all
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Verify | Nginx package is installed
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: Verify | Assert nginx package present
+      ansible.builtin.assert:
+        that:
+          - "'nginx' in ansible_facts.packages"
+        fail_msg: "nginx package is not installed"
+        success_msg: "nginx package is installed"
+
+    - name: Verify | Check nginx configuration syntax
+      ansible.builtin.command: /usr/sbin/nginx -t
+      changed_when: false
+
+    - name: Verify | Stat sites layout paths
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: nginx_layout
+      with_items:
+        - /etc/nginx/sites-available
+        - /etc/nginx/sites-enabled
+        - /etc/nginx/snippets
+
+    - name: Verify | Assert sites layout exists
+      ansible.builtin.assert:
+        that:
+          - item.stat.isdir
+        fail_msg: "{{ item.item }} is missing"
+        success_msg: "{{ item.item }} exists"
+      with_items: "{{ nginx_layout.results }}"
+
+    - name: Verify | Report installed nginx version
+      ansible.builtin.command: /usr/sbin/nginx -v
+      register: nginx_version
+      changed_when: false
+      failed_when: false
+
+    - name: Verify | Show nginx version
+      ansible.builtin.debug:
+        msg: "{{ nginx_version.stderr | default(nginx_version.stdout) }}"
