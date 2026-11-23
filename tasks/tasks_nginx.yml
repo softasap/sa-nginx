@@ -15,26 +15,59 @@
   when: ansible_os_family == "Alpine"
   block:
 
-  - name: Nginx | Install (apk)
+  - name: Nginx | Install repository prerequisites (apk)
     community.general.apk:
       update_cache: true
       state: present
-      name: nginx
+      name:
+        - openssl
+        - curl
+        - ca-certificates
     retries: 3
     register: result
     until: result is not failed
-    when: nginx_present is failed
+    become: true
+    tags: nginx
+
+  - name: Nginx | Fetch nginx apk signing key
+    ansible.builtin.get_url:
+      url: https://nginx.org/keys/nginx_signing.rsa.pub
+      dest: /etc/apk/keys/nginx_signing.rsa.pub
+      mode: "0644"
+    retries: 3
+    register: result
+    until: result is not failed
+    become: true
+    tags: nginx
+
+  - name: Nginx | Add nginx.org apk repository
+    ansible.builtin.lineinfile:
+      path: /etc/apk/repositories
+      regexp: "^@nginx https://nginx\\.org/packages/"
+      line: "@nginx https://nginx.org/packages/{{ 'mainline/' if nginx_repo_branch == 'mainline' else '' }}alpine/v{{ ansible_distribution_version.split('.')[:2] | join('.') }}/main"
+      state: present
     become: true
     tags: nginx
 
   - name: Nginx | Install (apk)
+    community.general.apk:
+      update_cache: true
+      state: "{{ nginx_state }}"
+      name: nginx@nginx
+    retries: 3
+    register: result
+    until: result is not failed
+    become: true
+    tags: nginx
+    notify: Nginx | Restart nginx
+
+  - name: Nginx | Install acl (apk)
     community.general.apk:
       state: present
       name: acl
     retries: 3
     register: result
     until: result is not failed
-    when: nginx_present is failed
     become: true
     tags: nginx
 
@@ -45,6 +78,7 @@
   - name: Update apt cache
     ansible.builtin.apt:
       update_cache: yes
+      cache_valid_time: 86400
     when: ansible_os_family == "Debian"
     become: true
     tags: nginx
@@ -62,7 +96,9 @@
 
   - name: Nginx | Install GPG (required for apt key management)
     ansible.builtin.package:
-      name: gnupg
+      name:
+        - gnupg
+        - ca-certificates
       state: present
     retries: 3
     register: result
@@ -71,44 +107,66 @@
     tags:
       - nginx
 
-  - name: Nginx | Add GPG key to apt keyring
-    ansible.builtin.apt_key:
-      url: http://nginx.org/keys/nginx_signing.key
-      state: present
+  - name: Nginx | Fetch nginx signing key
+    ansible.builtin.get_url:
+      url: https://nginx.org/keys/nginx_signing.key
+      dest: /tmp/nginx_signing.key
+      mode: "0644"
     retries: 3
     register: result
     until: result is not failed
-    when: nginx_present is failed
     become: true
     tags:
       - nginx
 
-  - name: Nginx | Add Debian apt repository
-    ansible.builtin.apt_repository:
-      repo: "deb http://nginx.org/packages/debian/ {{ ansible_distribution_release }} nginx"
-    when: ansible_os_family == "Debian" and ansible_distribution != "Ubuntu" and nginx_present is failed
+  - name: Nginx | Dearmor nginx signing key into keyring
+    ansible.builtin.command:
+      cmd: gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg /tmp/nginx_signing.key
+      creates: /usr/share/keyrings/nginx-archive-keyring.gpg
+    become: true
+    tags:
+      - nginx
+
+  - name: Nginx | Add nginx.org apt repository
+    ansible.builtin.deb822_repository:
+      name: nginx
+      types:
+        - deb
+      uris:
+        - "https://nginx.org/packages/{{ 'mainline/' if nginx_repo_branch == 'mainline' else '' }}{{ ansible_distribution | lower }}"
+      suites:
+        - "{{ ansible_distribution_release }}"
+      components:
+        - nginx
+      signed_by: /usr/share/keyrings/nginx-archive-keyring.gpg
+      state: present
+      enabled: true
     become: true
     tags: nginx
 
-  - name: Nginx | Add Ubuntu apt repository
-    ansible.builtin.apt_repository:
-      repo: "deb http://nginx.org/packages/ubuntu/ {{ ansible_distribution_release }} nginx"
-    when: ansible_distribution == "Ubuntu" and nginx_present is failed
+  - name: Nginx | Prefer nginx.org packages over distribution packages
+    ansible.builtin.copy:
+      dest: /etc/apt/preferences.d/99nginx
+      content: |
+        Package: *
+        Pin: origin nginx.org
+        Pin: release o=nginx
+        Pin-Priority: 900
+      mode: "0644"
     become: true
     tags: nginx
 
   - name: Nginx | Install (apt)
     ansible.builtin.apt:
-      update-cache: true
-      force: true
-      state: present
-      pkg: nginx
+      update_cache: true
+      state: "{{ nginx_state }}"
+      name: nginx
     retries: 3
     register: result
     until: result is not failed
-    when: nginx_present is failed
     become: true
     tags: nginx
+    notify: Nginx | Restart nginx
 
 - name: Nginx | Install (RPM-based systems)
   when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS' or ansible_distribution == 'Fedora'
@@ -126,7 +184,7 @@
 
   - name: Nginx | Add  RPM official nginx key
     ansible.builtin.rpm_key:
-      key: http://nginx.org/keys/nginx_signing.key
+      key: https://nginx.org/keys/nginx_signing.key
     retries: 3
     register: result
     until: result is not failed
@@ -145,13 +203,14 @@
 
   - name: Nginx | Install (OS specific yum/dng)
     ansible.builtin.package:
-      state: present
+      state: "{{ nginx_state }}"
       name: nginx
     retries: 3
     register: result
     until: result is not failed
     become: true
     tags: nginx
+    notify: Nginx | Restart nginx
 
 - name: Nginx | Create sites available/enabled directories
   ansible.builtin.file:
@@ -256,16 +315,6 @@
     etype: user
     permissions: wx
     state: present
-  become: true
-  tags:
-    - nginx
-
-- name: Nginx | Reload configuration
-  ansible.builtin.service:
-    name: nginx
-    state: restarted
-    enabled: true
-  when: nginx_present is failed and docker_test is not defined
   become: true
   tags:
     - nginx

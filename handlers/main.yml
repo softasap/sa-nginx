@@ -1,0 +1,10 @@
+---
+- name: Nginx | Restart nginx
+  ansible.builtin.service:
+    name: nginx
+    state: restarted
+    enabled: true
+  when: docker_test is not defined
+  become: true
+  tags:
+    - nginx

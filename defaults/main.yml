@@ -4,3 +4,13 @@ role_dir: "{{ role_path }}"
 
 nginx_groups: []
 #    - "www-data"
+
+# Nginx.org repository branch: stable (default) or mainline.
+# Stable is recommended for production; mainline ships the newest features.
+# As of Nov 2026 this resolves to stable 1.30.x / mainline 1.31.x.
+nginx_repo_branch: stable
+
+# Package state used when installing nginx. `latest` (default) ensures the
+# most recent version available from nginx.org; set to `present` to install
+# without upgrading an existing nginx.
+nginx_state: latest

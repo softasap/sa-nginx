@@ -11,3 +11,14 @@ __pycache__/
 .cache
 .aid*
 .ansible
+.claude/
+.kilo/
+.mcp.json
+.opencode/
+opencode.json
+zcode.json
+
+.agents/
+.codegraph/
+.commandcode/
+AGENTS.md
