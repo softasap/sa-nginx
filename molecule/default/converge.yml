@@ -3,6 +3,10 @@
   hosts: all
 
   pre_tasks:
+    - name: Display role under test
+      ansible.builtin.debug:
+        var: role_under_test
+
     - name: Display pre-task message
       ansible.builtin.debug:
         msg: "Pre tasks section for {{ ansible_host }}"
@@ -14,8 +18,10 @@
     - name: Include default vars
       ansible.builtin.include_vars: "vars/playbook_vars.yml"
 
-  roles:
-    - role: "sa-nginx"
+  tasks:
+    - name: Apply role under test
+      ansible.builtin.include_role:
+        name: "{{ role_under_test }}"
 
   # - name: Apply box play
   #   import_playbook: ../../playbook.yml

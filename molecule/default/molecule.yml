@@ -3,9 +3,9 @@ role_name_check: 1
 driver:
   name: vagrant
   provider:
-    # Can be any supported provider (virtualbox, parallels, libvirt, etc)
-    # Defaults to virtualbox
-    name: virtualbox
+    # libvirt (KVM/QEMU) is the default provider. Any other vagrant-supported
+    # provider (virtualbox, parallels, vmware_desktop, ...) can be used here.
+    name: libvirt
   # Run vagrant up with --provision.
   # Defaults to --no-provision)
   provision: false
@@ -16,47 +16,32 @@ driver:
   # If set to false, set VAGRANT_NO_PARALLEL to '1'
   # Defaults to true - but that can cause issues with multiple machines
   parallel: false
-  default_box: 'ubuntu/jammy64'
+  default_box: 'cloud-image/ubuntu-24.04'
 platforms:
-  - name: ubuntu2204
-    box: ubuntu/jammy64
-    memory: 4096
+  - name: ubuntu2404
+    box: cloud-image/ubuntu-24.04
+    memory: 2048
     cpus: 2
     interfaces:
       - network_name: private_network
         type: dhcp
         auto_config: true
-    instance_raw_config_args:
-      - "vbguest.auto_update = false"   # yamllint disable-line
-      - "disksize.size = '50GB'"
-    provider_raw_config_args:
-      - "customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"
-  - name: debian
-    box: debian/bullseye64
-    memory: 4096
+  - name: debian13
+    box: debian/trixie64
+    memory: 2048
     cpus: 2
     interfaces:
       - network_name: private_network
         type: dhcp
         auto_config: true
-    instance_raw_config_args:
-      - "vbguest.auto_update = false"   # yamllint disable-line
-      - "disksize.size = '50GB'"
-    provider_raw_config_args:
-      - "customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"
-  - name: alpine
-    box: generic/alpine318
-    memory: 4096
+  - name: alpine319
+    box: generic/alpine319
+    memory: 2048
     cpus: 2
     interfaces:
       - network_name: private_network
         type: dhcp
         auto_config: true
-    instance_raw_config_args:
-      - "vbguest.auto_update = false"   # yamllint disable-line
-      - "disksize.size = '50GB'"
-    provider_raw_config_args:
-      - "customize [ 'modifyvm', :id, '--uartmode1', 'disconnected' ]"
 
 
 provisioner:
@@ -64,6 +49,14 @@ provisioner:
   log: true
   scenario:
     name: default
+  inventory:
+    host_vars:
+      ubuntu2404:
+        role_under_test: ${MOLECULE_TEST_ROLE:-sa-nginx}
+      debian13:
+        role_under_test: ${MOLECULE_TEST_ROLE:-sa-nginx}
+      alpine319:
+        role_under_test: ${MOLECULE_TEST_ROLE:-sa-nginx}
   config_options:
     defaults:
       allow_world_readable_tmpfiles: true
