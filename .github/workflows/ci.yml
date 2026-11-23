@@ -1,0 +1,81 @@
+---
+name: CI
+'on':
+  pull_request:
+  push:
+    branches:
+      - master
+      - develop
+      - '!release/*'
+  schedule:
+    - cron: "10 5 * * 2"
+
+defaults:
+  run:
+    working-directory: 'role_under_test'
+
+jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+        with:
+          path: 'role_under_test'
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry.
+        run: pip3 install poetry
+
+      - name: Install system dependencies (libvirt-python build).
+        run: sudo apt-get update && sudo apt-get install -y libvirt-dev pkg-config
+
+      - name: Install test dependencies.
+        run: poetry install --no-root
+
+      - name: Install ansible-galaxy dependencies
+        run: poetry run ansible-galaxy collection install community.general ansible.posix
+
+      - name: Lint code.
+        run: |
+          poetry run yamllint .
+          poetry run ansible-lint
+
+  molecule:
+    name: Molecule (docker)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v4
+        with:
+          path: 'role_under_test'
+
+      - name: Set up Python 3.
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry.
+        run: pip3 install poetry
+
+      - name: Install system dependencies (libvirt-python build).
+        run: sudo apt-get update && sudo apt-get install -y libvirt-dev pkg-config
+
+      - name: Install test dependencies.
+        run: poetry install --no-root
+
+      - name: Install ansible-galaxy dependencies
+        run: poetry run ansible-galaxy collection install community.docker community.general ansible.posix
+
+      - name: Run Molecule tests.
+        run: poetry run molecule test -s docker
+        env:
+          PY_COLORS: '1'
+          ANSIBLE_FORCE_COLOR: '1'
+          MOLECULE_TEST_ROLE: role_under_test
