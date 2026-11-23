@@ -30,16 +30,19 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Poetry.
+        run: pip3 install poetry
+
       - name: Install test dependencies.
-        run: pip3 install yamllint ansible-lint ansible-core
+        run: poetry install
 
       - name: Install ansible-galaxy dependencies
-        run: ansible-galaxy collection install community.general ansible.posix
+        run: poetry run ansible-galaxy collection install community.general ansible.posix
 
       - name: Lint code.
         run: |
-          yamllint .
-          ansible-lint
+          poetry run yamllint .
+          poetry run ansible-lint
 
   molecule:
     name: Molecule (docker)
@@ -55,14 +58,17 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install Poetry.
+        run: pip3 install poetry
+
       - name: Install test dependencies.
-        run: pip3 install ansible-core molecule molecule-plugins docker pytest-testinfra
+        run: poetry install
 
       - name: Install ansible-galaxy dependencies
-        run: ansible-galaxy collection install community.docker community.general ansible.posix
+        run: poetry run ansible-galaxy collection install community.docker community.general ansible.posix
 
       - name: Run Molecule tests.
-        run: molecule test -s docker
+        run: poetry run molecule test -s docker
         env:
           PY_COLORS: '1'
           ANSIBLE_FORCE_COLOR: '1'
