@@ -15,203 +15,203 @@
   when: ansible_os_family == "Alpine"
   block:
 
-  - name: Nginx | Install repository prerequisites (apk)
-    community.general.apk:
-      update_cache: true
-      state: present
-      name:
-        - openssl
-        - curl
-        - ca-certificates
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags: nginx
+    - name: Nginx | Install repository prerequisites (apk)
+      community.general.apk:
+        update_cache: true
+        state: present
+        name:
+          - openssl
+          - curl
+          - ca-certificates
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags: nginx
 
-  - name: Nginx | Fetch nginx apk signing key
-    ansible.builtin.get_url:
-      url: https://nginx.org/keys/nginx_signing.rsa.pub
-      dest: /etc/apk/keys/nginx_signing.rsa.pub
-      mode: "0644"
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags: nginx
+    - name: Nginx | Fetch nginx apk signing key
+      ansible.builtin.get_url:
+        url: https://nginx.org/keys/nginx_signing.rsa.pub
+        dest: /etc/apk/keys/nginx_signing.rsa.pub
+        mode: "0644"
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags: nginx
 
-  - name: Nginx | Add nginx.org apk repository
-    ansible.builtin.lineinfile:
-      path: /etc/apk/repositories
-      regexp: "^@nginx https://nginx\\.org/packages/"
-      line: "@nginx https://nginx.org/packages/{{ 'mainline/' if nginx_repo_branch == 'mainline' else '' }}alpine/v{{ ansible_distribution_version.split('.')[:2] | join('.') }}/main"
-      state: present
-    become: true
-    tags: nginx
+    - name: Nginx | Add nginx.org apk repository
+      ansible.builtin.lineinfile:
+        path: /etc/apk/repositories
+        regexp: "^@nginx https://nginx\\.org/packages/"
+        line: "{{ nginx_apk_repo_parts | join('') }}"
+        state: present
+      become: true
+      tags: nginx
 
-  - name: Nginx | Install (apk)
-    community.general.apk:
-      update_cache: true
-      state: "{{ nginx_state }}"
-      name: nginx@nginx
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags: nginx
-    notify: Nginx | Restart nginx
+    - name: Nginx | Install (apk)
+      community.general.apk:
+        update_cache: true
+        state: "{{ nginx_state }}"
+        name: nginx@nginx
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags: nginx
+      notify: Nginx | Restart nginx
 
-  - name: Nginx | Install acl (apk)
-    community.general.apk:
-      state: present
-      name: acl
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags: nginx
+    - name: Nginx | Install acl (apk)
+      community.general.apk:
+        state: present
+        name: acl
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags: nginx
 
 - name: Nginx | Install (Debian-based systems)
   when: ansible_os_family == "Debian"
   block:
 
-  - name: Update apt cache
-    ansible.builtin.apt:
-      update_cache: yes
-      cache_valid_time: 86400
-    when: ansible_os_family == "Debian"
-    become: true
-    tags: nginx
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 86400
+      when: ansible_os_family == "Debian"
+      become: true
+      tags: nginx
 
-  - name: Nginx | Get acl dependency (ansible unprivileged user operations magic)
-    ansible.builtin.package:
-      name: "{{ ['acl', 'libacl1', 'libacl1-dev'] if ansible_distribution == 'Debian' else 'acl' }}"
-      state: "present"
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags:
-      - nginx
-
-  - name: Nginx | Install GPG (required for apt key management)
-    ansible.builtin.package:
-      name:
-        - gnupg
-        - ca-certificates
-        - python3-debian
-      state: present
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags:
-      - nginx
-
-  - name: Nginx | Fetch nginx signing key
-    ansible.builtin.get_url:
-      url: https://nginx.org/keys/nginx_signing.key
-      dest: /tmp/nginx_signing.key
-      mode: "0644"
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags:
-      - nginx
-
-  - name: Nginx | Dearmor nginx signing key into keyring
-    ansible.builtin.command:
-      cmd: gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg /tmp/nginx_signing.key
-      creates: /usr/share/keyrings/nginx-archive-keyring.gpg
-    become: true
-    tags:
-      - nginx
-
-  - name: Nginx | Add nginx.org apt repository
-    ansible.builtin.deb822_repository:
-      name: nginx
-      types:
-        - deb
-      uris:
-        - "https://nginx.org/packages/{{ 'mainline/' if nginx_repo_branch == 'mainline' else '' }}{{ ansible_distribution | lower }}"
-      suites:
-        - "{{ ansible_distribution_release }}"
-      components:
+    - name: Nginx | Get acl dependency (ansible unprivileged user operations magic)
+      ansible.builtin.package:
+        name: "{{ ['acl', 'libacl1', 'libacl1-dev'] if ansible_distribution == 'Debian' else 'acl' }}"
+        state: "present"
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags:
         - nginx
-      signed_by: /usr/share/keyrings/nginx-archive-keyring.gpg
-      state: present
-      enabled: true
-    become: true
-    tags: nginx
 
-  - name: Nginx | Prefer nginx.org packages over distribution packages
-    ansible.builtin.copy:
-      dest: /etc/apt/preferences.d/99nginx
-      content: |
-        Package: *
-        Pin: origin nginx.org
-        Pin: release o=nginx
-        Pin-Priority: 900
-      mode: "0644"
-    become: true
-    tags: nginx
+    - name: Nginx | Install GPG (required for apt key management)
+      ansible.builtin.package:
+        name:
+          - gnupg
+          - ca-certificates
+          - python3-debian
+        state: present
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags:
+        - nginx
 
-  - name: Nginx | Install (apt)
-    ansible.builtin.apt:
-      update_cache: true
-      state: "{{ nginx_state }}"
-      name: nginx
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags: nginx
-    notify: Nginx | Restart nginx
+    - name: Nginx | Fetch nginx signing key
+      ansible.builtin.get_url:
+        url: https://nginx.org/keys/nginx_signing.key
+        dest: /tmp/nginx_signing.key
+        mode: "0644"
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags:
+        - nginx
+
+    - name: Nginx | Dearmor nginx signing key into keyring
+      ansible.builtin.command:
+        cmd: gpg --dearmor -o /usr/share/keyrings/nginx-archive-keyring.gpg /tmp/nginx_signing.key
+        creates: /usr/share/keyrings/nginx-archive-keyring.gpg
+      become: true
+      tags:
+        - nginx
+
+    - name: Nginx | Add nginx.org apt repository
+      ansible.builtin.deb822_repository:
+        name: nginx
+        types:
+          - deb
+        uris:
+          - "https://nginx.org/packages/{{ 'mainline/' if nginx_repo_branch == 'mainline' else '' }}{{ ansible_distribution | lower }}"
+        suites:
+          - "{{ ansible_distribution_release }}"
+        components:
+          - nginx
+        signed_by: /usr/share/keyrings/nginx-archive-keyring.gpg
+        state: present
+        enabled: true
+      become: true
+      tags: nginx
+
+    - name: Nginx | Prefer nginx.org packages over distribution packages
+      ansible.builtin.copy:
+        dest: /etc/apt/preferences.d/99nginx
+        content: |
+          Package: *
+          Pin: origin nginx.org
+          Pin: release o=nginx
+          Pin-Priority: 900
+        mode: "0644"
+      become: true
+      tags: nginx
+
+    - name: Nginx | Install (apt)
+      ansible.builtin.apt:
+        update_cache: true
+        state: "{{ nginx_state }}"
+        name: nginx
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags: nginx
+      notify: Nginx | Restart nginx
 
 - name: Nginx | Install (RPM-based systems)
   when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS' or ansible_distribution == 'Fedora'
   block:
-  - name: Nginx | Get acl dependency (ansible unprivileged user operations magic)
-    ansible.builtin.package:
-      name: "acl"
-      state: "present"
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags:
-      - nginx
+    - name: Nginx | Get acl dependency (ansible unprivileged user operations magic)
+      ansible.builtin.package:
+        name: "acl"
+        state: "present"
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags:
+        - nginx
 
-  - name: Nginx | Add  RPM official nginx key
-    ansible.builtin.rpm_key:
-      key: https://nginx.org/keys/nginx_signing.key
-    retries: 3
-    register: result
-    until: result is not failed
-    when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
-    become: true
-    tags: nginx
+    - name: Nginx | Add  RPM official nginx key
+      ansible.builtin.rpm_key:
+        key: https://nginx.org/keys/nginx_signing.key
+      retries: 3
+      register: result
+      until: result is not failed
+      when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
+      become: true
+      tags: nginx
 
-  - name: Nginx | add YUM official nginx repository
-    ansible.builtin.template:
-      src: "{{ role_dir }}/templates/nginx/nginx.repo.j2"
-      dest: /etc/yum.repos.d/nginx.repo
-      mode: "0644"
-    when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
-    become: true
-    tags: nginx
+    - name: Nginx | add YUM official nginx repository
+      ansible.builtin.template:
+        src: "{{ role_dir }}/templates/nginx/nginx.repo.j2"
+        dest: /etc/yum.repos.d/nginx.repo
+        mode: "0644"
+      when: ansible_distribution == 'RedHat' or ansible_distribution == 'CentOS'
+      become: true
+      tags: nginx
 
-  - name: Nginx | Install (OS specific yum/dng)
-    ansible.builtin.package:
-      state: "{{ nginx_state }}"
-      name: nginx
-    retries: 3
-    register: result
-    until: result is not failed
-    become: true
-    tags: nginx
-    notify: Nginx | Restart nginx
+    - name: Nginx | Install (OS specific yum/dng)
+      ansible.builtin.package:
+        state: "{{ nginx_state }}"
+        name: nginx
+      retries: 3
+      register: result
+      until: result is not failed
+      become: true
+      tags: nginx
+      notify: Nginx | Restart nginx
 
 - name: Nginx | Create sites available/enabled directories
   ansible.builtin.file:

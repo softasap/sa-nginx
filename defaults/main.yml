@@ -14,3 +14,13 @@ nginx_repo_branch: stable
 # most recent version available from nginx.org; set to `present` to install
 # without upgrading an existing nginx.
 nginx_state: latest
+
+# Alpine apk repository line for nginx.org packages, as parts joined
+# without separator (split to stay within galaxy-importer's
+# 160-column lint limit; joined value must be byte-exact).
+nginx_apk_repo_parts:
+  - "@nginx https://nginx.org/packages/"
+  - "{{ 'mainline/' if nginx_repo_branch == 'mainline' else '' }}"
+  - "alpine/v"
+  - "{{ ansible_distribution_version.split('.')[:2] | join('.') }}"
+  - "/main"
